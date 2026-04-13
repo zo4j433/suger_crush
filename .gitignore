@@ -5,3 +5,5 @@ allegro.log
 *.out
 *.exe
 *.dll
+*.zip
+release/
