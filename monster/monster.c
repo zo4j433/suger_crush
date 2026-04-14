@@ -14,19 +14,42 @@
 #include "../system/turn_system.h"
 #include <allegro5/allegro_image.h>  
 static ALLEGRO_BITMAP* monster_bitmaps[MON_TYPE_COUNT];
+static bool player_in_ring(int mr, int mc, int range, int pr, int pc);
+static void debug_print_attack_info(int index, int r, int c, int player_r, int player_c, int range)
+{
+    printf("\n[ATTACK DEBUG] idx=%d type=%d\n", index, monsters[index].type);
+    printf("  current=(%d,%d) check=(%d,%d) next=(%d,%d)\n",
+           monsters[index].r, monsters[index].c,
+           r, c,
+           monsters[index].next_r, monsters[index].next_c);
+    printf("  player=(%d,%d) range=%d moving=%d delay=%d\n",
+           player_r, player_c, range,
+           monsters[index].moving, monsters[index].attack_delay);
 
+    for (int d = 0; d < 6; d++) {
+        int nr, nc;
+        get_neighbor(r, c, d, &nr, &nc);
+        printf("    dir %d -> (%d,%d)\n", d, nr, nc);
+    }
 
+    printf("  in_ring=%d\n", player_in_ring(r, c, range, player_r, player_c));
+}
 static bool is_tile_occupied(int r, int c, int self_index, int player_r, int player_c) {
     for (int i = 0; i < MAX_MONSTERS; i++) {
         if (i == self_index || !monsters[i].alive) continue;
-        if (monsters[i].r == r && monsters[i].c == c)
+
+        int occ_r = monsters[i].moving ? monsters[i].next_r : monsters[i].r;
+        int occ_c = monsters[i].moving ? monsters[i].next_c : monsters[i].c;
+
+        if (occ_r == r && occ_c == c)
             return true;
     }
+
     if (player_r == r && player_c == c)
         return true;
+
     return false;
 }
-
 static void get_screen_pos(int r, int c, float *out_x, float *out_y) {
     float HEX_W = get_hex_w(), HEX_V = get_hex_v();
 
@@ -143,6 +166,8 @@ Monster create_monster(MonsterType type, int r, int c) {
     m.type = type;
     m.r = r;
     m.c = c;
+    m.next_r = r;
+    m.next_c = c;
     m.max_hp = MONSTER_STATS[type].max_hp;
     m.hp = m.max_hp;
     m.atk = MONSTER_STATS[type].atk;
@@ -285,22 +310,45 @@ void draw_monsters() {
 
 void monster_take_action(int index, int player_r, int player_c, int *player_hp)
 {
+    (void)player_hp;
+
     if (!monsters[index].alive) return;
-    if (monsters[index].attack_delay > 0) return;
 
     int r = monsters[index].r;
     int c = monsters[index].c;
     int range = monsters[index].range;
     int move_range = monsters[index].move_range;
 
-    // 1) 移動階段
+    bool can_attack = (monsters[index].attack_delay <= 0);
+
+    // 1) 先用舊位置判定攻擊
+    if (can_attack && player_in_ring(r, c, range, player_r, player_c)) {
+        debug_print_attack_info(index, r, c, player_r, player_c, range);
+        printf(">>> ATTACK!\n");
+        player.last_attacker_r = r;
+        player.last_attacker_c = c;
+        damage_player(monsters[index].atk);
+
+        float sx = monsters[index].sx;
+        float sy = monsters[index].sy;
+        float tx, ty;
+        get_screen_pos(player_r, player_c, &tx, &ty);
+        spawn_pebble(sx, sy, tx, ty);
+
+        monsters[index].attack_delay = 20;
+    }
+
+    // 2) 再決定要往哪裡走，但先不要改真正的 r,c
+    int cur_r = r;
+    int cur_c = c;
+
     for (int step = 0; step < move_range; step++) {
-        int best_r = r, best_c = c;
-        int best_dist = distance_manhattan(r, c, player_r, player_c);
+        int best_r = cur_r, best_c = cur_c;
+        int best_dist = distance_manhattan(cur_r, cur_c, player_r, player_c);
 
         for (int d = 0; d < 6; d++) {
             int nr, nc;
-            get_neighbor(r, c, d, &nr, &nc);
+            get_neighbor(cur_r, cur_c, d, &nr, &nc);
 
             if (nr < 0 || nr >= ROWS) continue;
             if (nc < 0 || nc >= rowLengths[nr]) continue;
@@ -314,35 +362,22 @@ void monster_take_action(int index, int player_r, int player_c, int *player_hp)
             }
         }
 
-        // 如果這一步找不到更好的位置，就停止移動
-        if (best_r == r && best_c == c) break;
+        if (best_r == cur_r && best_c == cur_c) break;
 
-        monsters[index].r = best_r;
-        monsters[index].c = best_c;
-        r = best_r;
-        c = best_c;
-
-        get_screen_pos(r, c, &monsters[index].tx, &monsters[index].ty);
-        monsters[index].moving = true;
-        apply_sugar_dust_to_monster(r, c);
+        cur_r = best_r;
+        cur_c = best_c;
     }
 
-    //2) 攻擊階段：移動完後再檢查距離 
-    if (player_in_ring(r, c, range, player_r, player_c)) {
-        player.last_attacker_r = r;
-        player.last_attacker_c = c;
-        damage_player(monsters[index].atk);
+    // 3) 只記錄目標位置，先不改 monsters[index].r/c
+    monsters[index].next_r = cur_r;
+    monsters[index].next_c = cur_c;
 
-        float sx = monsters[index].sx;
-        float sy = monsters[index].sy;
-        float tx, ty;
-        get_screen_pos(player_r, player_c, &tx, &ty);
-        spawn_pebble(sx, sy, tx, ty);
-
-        monsters[index].attack_delay = 20;
+    if (cur_r != monsters[index].r || cur_c != monsters[index].c) {
+        get_screen_pos(cur_r, cur_c, &monsters[index].tx, &monsters[index].ty);
+        monsters[index].moving = true;
+        apply_sugar_dust_to_monster(cur_r, cur_c);
     }
 }
-
         
 
 void damage_monster_at(int r, int c, int damage) {
@@ -386,21 +421,28 @@ void damage_monster_at(int r, int c, int damage) {
 void update_monsters_animation(void) {
     for (int i = 0; i < MAX_MONSTERS; i++) {
         Monster *m = &monsters[i];
-         if (m->attack_delay > 0) {
+
+        if (m->attack_delay > 0) {
             m->attack_delay--;
-            continue;
         }
+
         if (!m->alive || !m->moving) continue;
+
         float dx = m->tx - m->sx;
         float dy = m->ty - m->sy;
         float dist = sqrtf(dx*dx + dy*dy);
+
         if (dist <= m->speed) {
             m->sx = m->tx;
             m->sy = m->ty;
             m->moving = false;
+
+            // 動畫走完，這時才真正更新邏輯座標
+            m->r = m->next_r;
+            m->c = m->next_c;
         } else {
-            m->sx += dx/dist * m->speed;
-            m->sy += dy/dist * m->speed;
+            m->sx += dx / dist * m->speed;
+            m->sy += dy / dist * m->speed;
         }
     }
 }

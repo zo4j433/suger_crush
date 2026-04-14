@@ -5,11 +5,14 @@
 #include "../board/movable.h"          // 用來判斷可移動格
 
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
 #include <math.h>
-
+static ALLEGRO_FONT *debug_font = NULL;
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+
 
 #define HEX_RADIUS 40  // 每個六邊形從中心到角的距離
 #define HEX_WIDTH  (HEX_RADIUS * 2)
@@ -69,7 +72,10 @@ void init_board(void){
 #define HL_THICK 6
 
 void draw_board(void)
-{
+{     if (!debug_font) {
+        debug_font = al_create_builtin_font();
+    }
+
     float W = get_hex_w(), V = get_hex_v();
 
     float ox, oy;
@@ -102,7 +108,7 @@ void draw_board(void)
             bool hl   = false;
             bool jump = false;
 
-            if (!auto_moving && !monsters_animating()) { // 只有不在自動移動時才亮格
+            if (!auto_moving && !monsters_animating()) {
                 hl = is_movable(r, c);
                 for (int i = 0; i < jump_cnt; i++) {
                     if (jump_tiles[i].r == r && jump_tiles[i].c == c) {
@@ -114,13 +120,26 @@ void draw_board(void)
 
             al_draw_polygon(pts,6,ALLEGRO_LINE_JOIN_ROUND,
                             al_map_rgb(230,230,230),2,0);
-
+/*
+                // debug: 顯示座標
+            char buf[32];
+            snprintf(buf, sizeof(buf), "(%d,%d)", r, c);
+            al_draw_text(
+                debug_font,
+                al_map_rgb(255, 255, 255),
+                cx,
+                cy - 8,
+                ALLEGRO_ALIGN_CENTER,
+                buf
+            );*/
             if(hl)
                 al_draw_polygon(pts,6,ALLEGRO_LINE_JOIN_BEVEL,
                                 al_map_rgb(255,255,0),HL_THICK,0);
             if(jump)
                 al_draw_polygon(pts,6,ALLEGRO_LINE_JOIN_BEVEL,
-                    al_map_rgb(  0,255,180),HL_THICK,0);
+                                al_map_rgb(0,255,180),HL_THICK,0);
+
+            
         }
     }
 }

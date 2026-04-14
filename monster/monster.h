@@ -30,7 +30,8 @@ typedef struct {
     int move_range;
     MonsterType type;
     bool alive;
-
+    int next_r;
+    int next_c;
     float sx, sy;          
     float tx, ty;          
     bool  moving;          
