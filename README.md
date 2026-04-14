@@ -130,6 +130,15 @@ Download the game from the **Releases** section on GitHub.
 ## 遊戲資料 Game Data
 
 - 完整怪物與技能圖鑑請參考：[Skills & Monsters Guide](docs/Dessert_Hop_Skills&Monsters.pdf)
+---
+## 專案來源 Project Origin
+
+本專案最初源自課程專案，並在此基礎上進行延伸與改進，
+包含遊戲機制設計、技能系統擴充，以及整體遊戲體驗的優化。
+
+This project was originally developed as part of a course project,
+and was later extended with additional gameplay systems, skill mechanics,
+and overall gameplay improvements.
 
 ---
 
