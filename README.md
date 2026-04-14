@@ -1,7 +1,7 @@
 # 甜點跳跳樂 Dessert Hop!
 
 <p align="center">
-  <img src="images/title.png" alt="Dessert Hop Title Screen" width="700">
+  <img src="image/title.png" alt="Dessert Hop Title Screen" width="700">
 </p>
 
 <p align="center">
@@ -41,26 +41,46 @@ and use skills strategically to survive as long as possible.
   若走錯可按 `Backspace` 回到上一步。
 
 <p align="center">
-  <img src="images/play01.png" alt="Path Planning 1" width="700">
-</p>
-
-<p align="center">
-  <img src="images/play02.png" alt="Path Planning 2" width="700">
+  <table>
+    <tr>
+      <td><img src="image/play01.png" width="200"></td>
+      <td><img src="image/play02.png" width="200"></td>
+    </tr>
+  </table>
 </p>
 
 - **Execute Movement（執行移動）**  
-  Press `Enter` to auto-hop along your path.  
-  按下 `Enter` 後角色會依照規劃路徑自動移動，跳過敵人會造成傷害，並可能觸發技能效果。
+  Press `Space`  to auto-hop along your path.  
+  按下 `Space`  後角色會依照規劃路徑自動移動，跳過敵人會造成傷害，並可能觸發技能效果。
+  <p align="center">
+  <table>
+    <tr>
+      <td><img src="image/play04.png" width="200"></td>
+    </tr>
+  </table>
+</p>
 
 - **Enemy Phase（敵人回合）**  
   After your move, enemies will move toward you and attack.  
   玩家行動結束後，敵人會自動朝玩家移動並進行攻擊。
+    <p align="center">
+  <table>
+    <tr>
+      <td><img src="image/play03.png" width="200"></td>
+    </tr>
+  </table>
+</p>
 
 - **Skills & Upgrades（技能與升級）**  
   Defeat enemies to gain EXP and level up. Each level lets you choose from random skills to enhance your combat style.  
   擊敗敵人可獲得經驗並升級。每次升級時可從隨機技能中選擇一項強化能力，不同技能可提升傷害、範圍效果或生存能力。  
-
-  Examples: Jelly Burst, Peanut Bombs, Sugar Dust Trail
+  <p align="center">
+  <table>
+    <tr>
+      <td><img src="image/play05.png" width="400"></td>
+    </tr>
+  </table>
+</p>
 
 - **Victory & Defeat（勝敗條件）**  
   Survive to turn 50 to win.  
@@ -70,19 +90,8 @@ and use skills strategically to survive as long as possible.
 
 ## 遊戲畫面 Screenshots
 
-### 主選單 Menu
 <p align="center">
-  <img src="images/menu.png" alt="Dessert Hop Menu" width="700">
-</p>
-
-### 遊戲畫面 Gameplay
-<p align="center">
-  <img src="images/gameplay.png" alt="Dessert Hop Gameplay" width="700">
-</p>
-
-### 技能選單 Skill Selection
-<p align="center">
-  <img src="images/skill-selection.png" alt="Dessert Hop Skill Selection" width="700">
+  <img src="image/gameplay.png" alt="Dessert Hop Gameplay" width="700">
 </p>
 
 ---
